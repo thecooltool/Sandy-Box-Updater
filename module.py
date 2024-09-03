@@ -213,9 +213,10 @@ def downloadFile(url, filePath):
         u = urllib.request.build_opener(handler).open(request)
         meta = u.info()
         contentLength = meta.get('content-length')
-        if contentLength is not None:   # loop until request is valid
+        transferEncoding = meta.get('Transfer-Encoding')
+        if transferEncoding == 'chunked' or contentLength is not None:   # loop until request is valid
             break
-    fileSize = int(contentLength)
+    fileSize = int(contentLength) if contentLength else 0
     fileSizeStr = formatSize(fileSize)
     print(("Downloading {0} ...".format(os.path.basename(filePath))))
 
@@ -230,7 +231,7 @@ def downloadFile(url, filePath):
         fileSizeDl += len(buffer)
         fileSizeDlStr = formatSize(fileSizeDl)
         f.write(buffer)
-        p = float(fileSizeDl) / fileSize
+        p = (float(fileSizeDl) / fileSize) if fileSize else 0
         status = r"{0}/{1}  [{2:.3%}]".format(fileSizeDlStr, fileSizeStr, p)
         status = status + chr(8) * (len(status) + 1)
         info(status)
